@@ -16,7 +16,8 @@ function collide(arena, player) {
   for (let y = 0; y < matrix.length; y++) {
     for (let x = 0; x < matrix[y].length; x++) {
       if (
-        matrix[y][x] !== 0 && (arena[y + position.y] && arena[y + position.y][x + position.x]) !== 0
+        matrix[y][x] !== 0 &&
+        (arena[y + position.y] && arena[y + position.y][x + position.x]) !== 0
       ) {
         return true;
       }
@@ -56,7 +57,7 @@ const player = {
   matrix: matrix
 };
 
-const arena = createMatrix(20, 20);
+const arena = createMatrix(12, 20);
 
 function merge(arena, player) {
   player.matrix.forEach((row, y) => {
@@ -78,6 +79,13 @@ function playerDrop() {
   dropCounter = 0; // If a manual drop occurs, restart the drop delay.
 }
 
+function playerMove(direction) {
+    player.pos.x += direction;
+    if(collide(arena, player)){
+        player.pos.x -= direction;
+    }
+}
+
 let dropCounter = 0;
 let dropInterval = 1000;
 let lastTime = 0;
@@ -88,7 +96,7 @@ function update(time = 0) {
   dropCounter += deltaTime;
 
   if (dropCounter > dropInterval) {
-    playerDrop()
+    playerDrop();
   }
 
   draw();
@@ -99,11 +107,11 @@ document.addEventListener("keydown", event => {
   const { keyCode } = event;
 
   if (keyCode === 37) {
-    player.pos.x--;
+    playerMove(-1);
   }
 
   if (keyCode === 39) {
-    player.pos.x++;
+    playerMove(1);
   }
 
   if (keyCode === 40) {
