@@ -2,41 +2,36 @@ const canvas = document.getElementById("tetris");
 const context = canvas.getContext("2d");
 
 context.scale(20, 20);
-
 context.fillStyle = "#000";
-context.fillRect(0, 0, 20, 20);
+context.fillRect(0, 0, canvas.clientWidth, canvas.height);
 
-function arenaSweep() {
-  let rowCount = 1;
-  outer: for (let y = arena.length - 1; y > 0; y--) {
-    for (let x = 0; x < arena[y].length; x++) {
-      if (arena[y][x] === 0) {
-        continue outer;
-      }
-    }
-    // Remove the row from the arena, fill it with 0, add it to the top.
-    const row = arena.splice(y,1)[0].fill(0);
-    arena.unshift(row);
-    ++y;
-    player.score += rowCount * 10;
-    rowCount *= 2;
-  }
-}
+// Properties
+let dropCounter = 0;
+let dropInterval = 1000;
+let lastTime = 0;
 
-function collide(arena, player) {
-  const [matrix, position] = [player.matrix, player.pos];
-  for (let y = 0; y < matrix.length; y++) {
-    for (let x = 0; x < matrix[y].length; x++) {
-      if (
-        matrix[y][x] !== 0 &&
-        (arena[y + position.y] && arena[y + position.y][x + position.x]) !== 0
-      ) {
-        return true;
-      }
-    }
-  }
-  return false;
-}
+// Instances
+
+const player = {
+  pos: { x: 5, y: 5 },
+  matrix: null,
+  score: 0
+};
+
+const colors = [
+  null,
+  "red",
+  "blue",
+  "green",
+  "violet",
+  "purple",
+  "grey",
+  "yellow"
+];
+
+const arena = createMatrix(12, 20);
+
+// ---
 
 function createMatrix(w, h) {
   const matrix = [];
@@ -85,22 +80,24 @@ function drawMatrix(matrix, offset) {
   });
 }
 
-const player = {
-  pos: { x: 5, y: 5 },
-  matrix: null,
-  score: 0
-};
-const colors = [
-  null,
-  "red",
-  "blue",
-  "green",
-  "violet",
-  "purple",
-  "grey",
-  "yellow"
-];
-const arena = createMatrix(12, 20);
+// ---
+
+function arenaSweep() {
+  let rowCount = 1;
+  outer: for (let y = arena.length - 1; y > 0; y--) {
+    for (let x = 0; x < arena[y].length; x++) {
+      if (arena[y][x] === 0) {
+        continue outer;
+      }
+    }
+    // Remove the row from the arena, fill it with 0, add it to the top.
+    const row = arena.splice(y, 1)[0].fill(0);
+    arena.unshift(row);
+    ++y;
+    player.score += rowCount * 10;
+    rowCount *= 2;
+  }
+}
 
 function merge(arena, player) {
   player.matrix.forEach((row, y) => {
@@ -112,14 +109,31 @@ function merge(arena, player) {
   });
 }
 
+function collide(arena, player) {
+  const [matrix, position] = [player.matrix, player.pos];
+  for (let y = 0; y < matrix.length; y++) {
+    for (let x = 0; x < matrix[y].length; x++) {
+      if (
+        matrix[y][x] !== 0 &&
+        (arena[y + position.y] && arena[y + position.y][x + position.x]) !== 0
+      ) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+// ---
+
 function playerDrop() {
   player.pos.y++;
   if (collide(arena, player)) {
     player.pos.y--;
     merge(arena, player);
     playerReset();
-    arenaSweep()
-    updateScore()
+    arenaSweep();
+    updateScore();
   }
   dropCounter = 0; // If a manual drop occurs, restart the drop delay.
 }
@@ -175,9 +189,7 @@ function rotate(matrix, dir) {
   }
 }
 
-let dropCounter = 0;
-let dropInterval = 1000;
-let lastTime = 0;
+// ---
 
 function update(time = 0) {
   const deltaTime = time - lastTime;
@@ -192,8 +204,8 @@ function update(time = 0) {
   requestAnimationFrame(update);
 }
 
-function updateScore(){
-    document.getElementById("score").innerText = player.score
+function updateScore() {
+  document.getElementById("score").innerText = player.score;
 }
 
 document.addEventListener("keydown", event => {
@@ -220,6 +232,6 @@ document.addEventListener("keydown", event => {
   }
 });
 
-playerReset()
-updateScore()
+playerReset();
+updateScore();
 update();
